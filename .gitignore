@@ -106,3 +106,7 @@ dist
 #Jetbrains IDE
 *.iml
 .idea/
+
+#Cypress
+cypress/screenshots/
+cypress/videos/
