@@ -28,5 +28,34 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
-    - run: npm start &
-    - run: npm run cypress:run
+
+    - name: Start Server
+      run: npm start &
+
+    - name: Run Cypress tests
+      run: npm run cypress:run
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy to AWS CloudFormation
+      uses: aws-actions/aws-cloudformation-github-deploy@v1
+      with:
+        name: cypress-example
+        template: aws/cloudformation.yml
+        no-fail-on-empty-changeset: "1"
+
+    - name: Deploy React App
+      run: aws s3 sync build s3://cypress-example
+
+    - name: Run Remote Cypress Tests
+      env:
+        CYPRESS_BASE_URL: http://cypress-example.s3-website-us-east-1.amazonaws.com
+      run: npm run cypress:run
+
+
+
